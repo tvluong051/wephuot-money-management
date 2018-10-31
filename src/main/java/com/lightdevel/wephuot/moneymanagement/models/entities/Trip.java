@@ -12,7 +12,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "trips")
-public class Trip {
+public class Trip extends BaseEntity {
     @Id
     @Column(name = "trip_id")
     private String tripId;
@@ -26,4 +26,5 @@ public class Trip {
     @Column
     @Enumerated
     private TripStatus status;
+
 }

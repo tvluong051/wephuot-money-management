@@ -17,7 +17,9 @@ CREATE TABLE trips (
   trip_id VARCHAR(50) PRIMARY KEY,
   name VARCHAR(50),
   description TEXT,
-  status SMALLINT
+  status SMALLINT,
+  created_date BIGINT,
+  last_modified BIGINT
 );
 
 CREATE TABLE participants (
