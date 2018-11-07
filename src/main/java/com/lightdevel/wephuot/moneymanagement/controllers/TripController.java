@@ -1,7 +1,7 @@
 package com.lightdevel.wephuot.moneymanagement.controllers;
 
-import com.lightdevel.wephuot.moneymanagement.models.entities.Trip;
 import com.lightdevel.wephuot.moneymanagement.models.in.TripIn;
+import com.lightdevel.wephuot.moneymanagement.models.out.TripOut;
 import com.lightdevel.wephuot.moneymanagement.services.TripService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,9 +32,15 @@ public class TripController {
     }
 
     @GetMapping
-    public Set<Trip> getAllUserTrips(@RequestParam("userId") String userId) {
+    public Set<TripOut> getAllUserTrips(@RequestParam("userId") String userId) {
         LOGGER.info("GET - Get all trips of user = {}", userId);
-        return tripService.getAllTripsOfUser(userId);
+        return this.tripService.getAllTripsOfUser(userId);
+    }
+
+    @GetMapping(value = "/trip/{tripId}")
+    public TripOut getTripDetail(@PathVariable("tripId") String tripId) {
+        LOGGER.info("GET - Get detail of trip with id = {}", tripId);
+        return this.tripService.getDetail(tripId);
     }
 
     // @PutMapping(value = "/trip/{tripId}")

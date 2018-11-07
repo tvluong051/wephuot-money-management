@@ -4,6 +4,7 @@ import com.lightdevel.wephuot.moneymanagement.models.entities.Participant;
 import com.lightdevel.wephuot.moneymanagement.models.entities.Trip;
 import com.lightdevel.wephuot.moneymanagement.models.enums.TripStatus;
 import com.lightdevel.wephuot.moneymanagement.models.in.TripIn;
+import com.lightdevel.wephuot.moneymanagement.models.out.TripOut;
 import com.lightdevel.wephuot.moneymanagement.repositories.ParticipantRepository;
 import com.lightdevel.wephuot.moneymanagement.repositories.TripRepository;
 import com.lightdevel.wephuot.moneymanagement.utils.Util;
@@ -52,12 +53,45 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public Set<Trip> getAllTripsOfUser(String userId) {
-        List<Participant> userTrip = this.participantRepository.findAllByUserUserId(userId);
-        if(userTrip != null && userTrip.size() > 0) {
-            return userTrip.stream().map(Participant::getTrip).collect(Collectors.toSet());
+    public Set<TripOut> getAllTripsOfUser(String userId) {
+        List<Participant> participants = this.participantRepository.findAllByUserUserId(userId);
+        if(participants != null && participants.size() > 0) {
+            return participants.stream()
+                    .map(participant -> {
+                        Trip trip = participant.getTrip();
+                        return TripOut.builder()
+                                .tripId(trip.getTripId())
+                                .name(trip.getName())
+                                .description(trip.getDescription())
+                                .status(trip.getStatus())
+                                .createdDate(trip.getCreatedDate())
+                                .lastModified(trip.getLastModified())
+                                .build();
+                    })
+                    .collect(Collectors.toSet());
         }
         return new HashSet<>();
+    }
+
+    @Override
+    public TripOut getDetail(String tripId) {
+        TripOut.TripOutBuilder tripOutBuilder = TripOut.builder();
+        List<Participant> participants = this.participantRepository.findAllByTripTripId(tripId);
+        if(participants == null || participants.size() == 0) {
+            return tripOutBuilder.build();
+        }
+        Trip trip = participants.get(0).getTrip();
+        return tripOutBuilder
+                .tripId(trip.getTripId())
+                .name(trip.getName())
+                .description(trip.getDescription())
+                .status(trip.getStatus())
+                .createdDate(trip.getCreatedDate())
+                .lastModified(trip.getLastModified())
+                .participants(participants.stream()
+                        .map(Participant::getUser)
+                        .collect(Collectors.toSet()))
+                .build();
     }
 
 
