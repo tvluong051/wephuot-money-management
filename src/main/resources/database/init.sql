@@ -18,12 +18,13 @@ CREATE TABLE trips (
   name VARCHAR(50),
   description TEXT,
   status SMALLINT,
+  cover_photo VARCHAR(100),
   created_date BIGINT,
   last_modified BIGINT
 );
 
 CREATE TABLE participants (
-  id BIGINT PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
   trip_id VARCHAR(50) NOT NULL,
   user_id VARCHAR(50) NOT NULL,
   FOREIGN KEY (trip_id) REFERENCES trips(trip_id),
@@ -32,7 +33,7 @@ CREATE TABLE participants (
 );
 
 CREATE TABLE spendings (
-  id BIGINT PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
   trip_id VARCHAR(50) NOT NULL,
   description VARCHAR(30) NOT NULL,
   spent_date BIGINT NOT NULL,
@@ -43,7 +44,7 @@ CREATE TABLE spendings (
 );
 
 CREATE TABLE shareparts (
-  id BIGINT PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
   spending_id BIGINT NOT NULL,
   amount FLOAT8 NOT NULL,
   debiter VARCHAR(50) NOT NULL,

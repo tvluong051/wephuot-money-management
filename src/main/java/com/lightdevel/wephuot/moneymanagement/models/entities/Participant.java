@@ -9,7 +9,7 @@ import javax.persistence.*;
 @Table(name = "participants")
 public class Participant {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne

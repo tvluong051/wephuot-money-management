@@ -11,4 +11,5 @@ public class TripIn {
     @NotNull
     private String name;
     private String description;
+    private String coverPhotoBase64Encoded;
 }

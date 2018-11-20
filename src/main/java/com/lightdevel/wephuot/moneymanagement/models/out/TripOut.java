@@ -18,5 +18,6 @@ public class TripOut {
     private TripStatus status;
     private Long createdDate;
     private Long lastModified;
+    private String coverPhoto;
     private Set<User> participants;
 }

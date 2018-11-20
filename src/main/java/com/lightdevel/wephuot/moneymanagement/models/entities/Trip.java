@@ -27,4 +27,7 @@ public class Trip extends BaseEntity {
     @Enumerated
     private TripStatus status;
 
+    @Column(name = "cover_photo")
+    private String coverPhoto;
+
 }

@@ -14,3 +14,7 @@ spring:
         jdbc:
           lob:
             non_contextual_creation: true
+
+storage:
+  file:
+    path: /var/www/we-phuot
