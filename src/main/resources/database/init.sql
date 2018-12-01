@@ -38,6 +38,7 @@ CREATE TABLE spendings (
   description VARCHAR(30) NOT NULL,
   spent_date BIGINT NOT NULL,
   amount FLOAT8 NOT NULL,
+  equally_divided BOOLEAN,
   crediter VARCHAR(50) NOT NULL,
   FOREIGN KEY (trip_id) REFERENCES trips(trip_id),
   FOREIGN KEY (crediter) REFERENCES users(user_id)
@@ -49,5 +50,6 @@ CREATE TABLE shareparts (
   amount FLOAT8 NOT NULL,
   debiter VARCHAR(50) NOT NULL,
   FOREIGN KEY (spending_id) REFERENCES spendings(id),
-  FOREIGN KEY (debiter) REFERENCES users(user_id)
+  FOREIGN KEY (debiter) REFERENCES users(user_id),
+  UNIQUE (spending_id, debiter)
 );

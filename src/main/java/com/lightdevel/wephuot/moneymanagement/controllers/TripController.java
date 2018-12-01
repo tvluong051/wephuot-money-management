@@ -4,6 +4,7 @@ import com.lightdevel.wephuot.moneymanagement.models.entities.User;
 import com.lightdevel.wephuot.moneymanagement.models.in.TripIn;
 import com.lightdevel.wephuot.moneymanagement.models.out.TripOut;
 import com.lightdevel.wephuot.moneymanagement.services.TripService;
+import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+@Api("Manipulation trips")
 @RestController
 @RequestMapping("/api/v1/trips")
 public class TripController {
