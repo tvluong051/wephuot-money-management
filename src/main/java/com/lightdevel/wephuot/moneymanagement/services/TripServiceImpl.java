@@ -1,5 +1,6 @@
 package com.lightdevel.wephuot.moneymanagement.services;
 
+import com.lightdevel.wephuot.moneymanagement.exceptions.BusinessException;
 import com.lightdevel.wephuot.moneymanagement.models.entities.Participant;
 import com.lightdevel.wephuot.moneymanagement.models.entities.Trip;
 import com.lightdevel.wephuot.moneymanagement.models.entities.User;
@@ -61,11 +62,11 @@ public class TripServiceImpl implements TripService {
         }
         Optional<Trip> optionalExistingTrip = this.tripRepository.findById(trip.getTripId());
         if (!optionalExistingTrip.isPresent()) {
-            throw new RuntimeException();
+            throw new BusinessException("Trip id = " + trip.getTripId() + " doesn't exist");
         }
         Trip existingTrip = optionalExistingTrip.get();
         if (TripStatus.VALIDATED.equals(existingTrip.getStatus())) {
-            throw new RuntimeException();
+            throw new BusinessException("Cannot update VALIDATED trip");
         }
         existingTrip.setName(trip.getName());
         existingTrip.setDescription(trip.getDescription());
