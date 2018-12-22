@@ -2,12 +2,13 @@ package com.lightdevel.wephuot.moneymanagement.models.in;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 @Data
 public class SpendingIn {
-    @NotNull
+    @NotEmpty
     private String description;
 
     @NotNull
