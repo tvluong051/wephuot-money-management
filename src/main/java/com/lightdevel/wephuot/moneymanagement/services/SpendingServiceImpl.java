@@ -82,6 +82,7 @@ public class SpendingServiceImpl implements SpendingService {
     }
 
     @Override
+    @Transactional
     public SpendingOut saveSpending(String tripId, SpendingIn spendingIn) {
         Optional<Trip> optionalTrip = this.tripRepository.findById(tripId);
         if(!optionalTrip.isPresent()) throw new BusinessException("Trip doesn't exist");
@@ -118,6 +119,7 @@ public class SpendingServiceImpl implements SpendingService {
     }
 
     @Override
+    @Transactional
     public SpendingOut updateSpending(Long spendingId, SpendingIn spendingIn) {
         Optional<Spending> optionalSpending = this.spendingRepository.findById(spendingId);
         if(!optionalSpending.isPresent()) {

@@ -41,6 +41,7 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
+    @Transactional
     public String save(TripIn trip) {
         Trip createdTrip = saveTripDetail(trip);
         if(!StringUtils.isEmpty(trip.getCoverPhotoBase64Encoded())) {
@@ -75,8 +76,8 @@ public class TripServiceImpl implements TripService {
     }
 
 
-    @Transactional
     @Override
+    @Transactional
     public String addParticipants(String tripId, List<User> paticipants) {
         Optional<Trip> optionalTrip = this.tripRepository.findById(tripId);
         if(!optionalTrip.isPresent()) {
@@ -139,8 +140,8 @@ public class TripServiceImpl implements TripService {
                 .build();
     }
 
-    @Transactional
     @Override
+    @Transactional
     public String validateTrip(String tripId) {
         Optional<Trip> optionalTrip = this.tripRepository.findById(tripId);
         if(optionalTrip.isPresent()) {
