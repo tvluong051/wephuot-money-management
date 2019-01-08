@@ -20,6 +20,7 @@
         <postgres.version>42.2.5</postgres.version>
         <lombok.version>1.18.2</lombok.version>
         <joda.version>2.10.1</joda.version>
+        <swagger.version>2.9.2</swagger.version>
     </properties>
 
     <dependencies>
@@ -44,6 +45,8 @@
             <artifactId>postgresql</artifactId>
             <version>${postgres.version}</version>
         </dependency>
+
+        <!-- Common utils -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -54,6 +57,18 @@
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>${joda.version}</version>
+        </dependency>
+
+        <!-- Swagger -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>${swagger.version}</version>
         </dependency>
 
 

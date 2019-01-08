@@ -1,5 +1,6 @@
 package com.lightdevel.wephuot.moneymanagement.services;
 
+import com.lightdevel.wephuot.moneymanagement.exceptions.BusinessException;
 import com.lightdevel.wephuot.moneymanagement.models.entities.Participant;
 import com.lightdevel.wephuot.moneymanagement.models.entities.Trip;
 import com.lightdevel.wephuot.moneymanagement.models.entities.User;
@@ -40,6 +41,7 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
+    @Transactional
     public String save(TripIn trip) {
         Trip createdTrip = saveTripDetail(trip);
         if(!StringUtils.isEmpty(trip.getCoverPhotoBase64Encoded())) {
@@ -61,11 +63,11 @@ public class TripServiceImpl implements TripService {
         }
         Optional<Trip> optionalExistingTrip = this.tripRepository.findById(trip.getTripId());
         if (!optionalExistingTrip.isPresent()) {
-            throw new RuntimeException();
+            throw new BusinessException("Trip id = " + trip.getTripId() + " doesn't exist");
         }
         Trip existingTrip = optionalExistingTrip.get();
         if (TripStatus.VALIDATED.equals(existingTrip.getStatus())) {
-            throw new RuntimeException();
+            throw new BusinessException("Cannot update VALIDATED trip");
         }
         existingTrip.setName(trip.getName());
         existingTrip.setDescription(trip.getDescription());
@@ -74,8 +76,8 @@ public class TripServiceImpl implements TripService {
     }
 
 
-    @Transactional
     @Override
+    @Transactional
     public String addParticipants(String tripId, List<User> paticipants) {
         Optional<Trip> optionalTrip = this.tripRepository.findById(tripId);
         if(!optionalTrip.isPresent()) {
@@ -138,8 +140,8 @@ public class TripServiceImpl implements TripService {
                 .build();
     }
 
-    @Transactional
     @Override
+    @Transactional
     public String validateTrip(String tripId) {
         Optional<Trip> optionalTrip = this.tripRepository.findById(tripId);
         if(optionalTrip.isPresent()) {
