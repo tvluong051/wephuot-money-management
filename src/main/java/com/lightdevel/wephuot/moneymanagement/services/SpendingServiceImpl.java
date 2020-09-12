@@ -1,6 +1,7 @@
 package com.lightdevel.wephuot.moneymanagement.services;
 
 import com.lightdevel.wephuot.moneymanagement.exceptions.BusinessException;
+import com.lightdevel.wephuot.moneymanagement.exceptions.UserNotInTripException;
 import com.lightdevel.wephuot.moneymanagement.models.entities.*;
 import com.lightdevel.wephuot.moneymanagement.models.in.SpendingIn;
 import com.lightdevel.wephuot.moneymanagement.models.out.SpendingOut;
@@ -83,39 +84,21 @@ public class SpendingServiceImpl implements SpendingService {
 
     @Override
     @Transactional
-    public SpendingOut saveSpending(String tripId, SpendingIn spendingIn) {
+    public SpendingOut addSpending(String tripId, SpendingIn spendingIn) {
         Optional<Trip> optionalTrip = this.tripRepository.findById(tripId);
         if(!optionalTrip.isPresent()) throw new BusinessException("Trip doesn't exist");
         Participant participant = this.participantRepository.findByUserUserIdAndTripTripId(spendingIn.getCrediter(), tripId);
-        if(participant == null) throw new BusinessException("Crediter doesn't exist or doesn't participate to trip");
+        if(participant == null) {
+            LOGGER.error("Crediter = {} not in trip = {}", spendingIn.getCrediter(), tripId);
+            throw new UserNotInTripException(tripId, spendingIn.getCrediter());
+        }
 
         Trip trip = optionalTrip.get();
         User crediter = participant.getUser();
 
         Spending spending = new Spending();
-        spending.setDescription(spendingIn.getDescription());
-        spending.setSpentDate(spendingIn.getSpentDate());
-        spending.setAmount(spendingIn.getAmount());
-        spending.setCrediter(crediter);
         spending.setTrip(trip);
-        boolean equallyDivided = isEquallyDivided(spendingIn);
-        spending.setEquallyDivided(equallyDivided);
-        spending = this.spendingRepository.save(spending);
-        SpendingOut.SpendingOutBuilder builder = SpendingOut.builder()
-                .id(spending.getId())
-                .description(spending.getDescription())
-                .spentDate(spending.getSpentDate())
-                .amount(spending.getAmount())
-                .equallyDivided(spending.getEquallyDivided() == null ? false : spending.getEquallyDivided())
-                .crediter(spending.getCrediter());
-
-        if(!equallyDivided) {
-            List<Sharepart> shareparts = saveShareparts(spending, spendingIn.getShareparts());
-            builder.shareparts(shareparts.stream()
-                .collect(Collectors.toMap(s -> s.getDebiter().getUserId(), Sharepart::getAmount))
-            );
-        }
-        return builder.build();
+        return saveSpending(spending, spendingIn, crediter, false);
     }
 
     @Override
@@ -128,36 +111,43 @@ public class SpendingServiceImpl implements SpendingService {
         }
         Spending spending = optionalSpending.get();
         Participant participant = this.participantRepository.findByUserUserIdAndTripTripId(spendingIn.getCrediter(), spending.getTrip().getTripId());
-        if(participant == null) throw new BusinessException("Crediter doesn't exist or doesn't participate to trip");
+        if(participant == null) {
+            LOGGER.error("Crediter = {} not in trip = {}", spendingIn.getCrediter(), spending.getTrip().getTripId());
+            throw new UserNotInTripException(spending.getTrip().getTripId(), spendingIn.getCrediter());
+        }
         User crediter = participant.getUser();
-        spending.setDescription(spendingIn.getDescription());
-        spending.setSpentDate(spendingIn.getSpentDate());
-        spending.setAmount(spendingIn.getAmount());
-        spending.setCrediter(crediter);
+        return saveSpending(spending, spendingIn, crediter, true);
+    }
 
-        boolean equallyDivided = isEquallyDivided(spendingIn);
+    SpendingOut saveSpending(Spending newSpending, SpendingIn newSpendingIn, User crediter, boolean isUpdating) {
+        newSpending.setDescription(newSpendingIn.getDescription());
+        newSpending.setSpentDate(newSpendingIn.getSpentDate());
+        newSpending.setAmount(newSpendingIn.getAmount());
+        newSpending.setCrediter(crediter);
 
-        spending.setEquallyDivided(equallyDivided);
-        spending = this.spendingRepository.save(spending);
+        boolean equallyDivided = isEquallyDivided(newSpendingIn);
+
+        newSpending.setEquallyDivided(equallyDivided);
+        newSpending = this.spendingRepository.save(newSpending);
         SpendingOut.SpendingOutBuilder builder = SpendingOut.builder()
-                .id(spending.getId())
-                .description(spending.getDescription())
-                .spentDate(spending.getSpentDate())
-                .amount(spending.getAmount())
-                .equallyDivided(spending.getEquallyDivided() == null ? false : spending.getEquallyDivided())
-                .crediter(spending.getCrediter());
+                .id(newSpending.getId())
+                .description(newSpending.getDescription())
+                .spentDate(newSpending.getSpentDate())
+                .amount(newSpending.getAmount())
+                .equallyDivided(newSpending.getEquallyDivided() == null ? false : newSpending.getEquallyDivided())
+                .crediter(newSpending.getCrediter());
 
         if(!equallyDivided) {
-            List<Sharepart> shareparts = saveShareparts(spending, spendingIn.getShareparts());
+            List<Sharepart> shareparts = saveShareparts(newSpending, newSpendingIn.getShareparts());
             builder.shareparts(shareparts.stream()
                     .collect(Collectors.toMap(s -> s.getDebiter().getUserId(), Sharepart::getAmount))
             );
-        } else {
+        } else if(isUpdating) {
+            Long spendingId = newSpending.getId();
             int rowCount = this.sharepartRepository.deleteBySpendingId(spendingId);
             LOGGER.info("Delete {} row(s) from Sharepart table", rowCount);
         }
         return builder.build();
-
     }
 
     boolean isEquallyDivided(SpendingIn spendingIn) {
@@ -182,7 +172,10 @@ public class SpendingServiceImpl implements SpendingService {
         }
         for(String debiterId: shareparts.keySet()) {
             Participant participant = this.participantRepository.findByUserUserIdAndTripTripId(debiterId, spending.getTrip().getTripId());
-            if(participant == null) throw new BusinessException("Debiter doesn't exist or doesn't participate to trip");
+            if(participant == null) {
+                LOGGER.error("Debiter = {} not in trip = {}", debiterId, spending.getTrip().getTripId());
+                throw new UserNotInTripException(spending.getTrip().getTripId(), debiterId);
+            }
             User debiter = participant.getUser();
             Sharepart sharepart = new Sharepart();
             sharepart.setSpending(spending);

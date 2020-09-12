@@ -1,19 +1,12 @@
-DROP TABLE IF EXISTS money_management.participants;
-DROP TABLE IF EXISTS money_management.shareparts;
-DROP TABLE IF EXISTS money_management.spendings;
-DROP TABLE IF EXISTS money_management.users;
-DROP TABLE IF EXISTS money_management.trips;
-
-DROP SCHEMA IF EXISTS money_management;
-CREATE SCHEMA money_management;
+CREATE SCHEMA IF NOT EXISTS money_management;
 SET SEARCH_PATH TO money_management;
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   user_id VARCHAR(50) PRIMARY KEY,
   email VARCHAR(50) UNIQUE NOT NULL
 );
 
-CREATE TABLE trips (
+CREATE TABLE IF NOT EXISTS trips (
   trip_id VARCHAR(50) PRIMARY KEY,
   name VARCHAR(200),
   description TEXT,
@@ -23,7 +16,7 @@ CREATE TABLE trips (
   last_modified BIGINT
 );
 
-CREATE TABLE participants (
+CREATE TABLE IF NOT EXISTS participants (
   id BIGSERIAL PRIMARY KEY,
   trip_id VARCHAR(50) NOT NULL,
   user_id VARCHAR(50) NOT NULL,
@@ -32,7 +25,7 @@ CREATE TABLE participants (
   UNIQUE (trip_id, user_id)
 );
 
-CREATE TABLE spendings (
+CREATE TABLE IF NOT EXISTS spendings (
   id BIGSERIAL PRIMARY KEY,
   trip_id VARCHAR(50) NOT NULL,
   description VARCHAR(200) NOT NULL,
@@ -44,7 +37,7 @@ CREATE TABLE spendings (
   FOREIGN KEY (crediter) REFERENCES users(user_id)
 );
 
-CREATE TABLE shareparts (
+CREATE TABLE IF NOT EXISTS shareparts (
   id BIGSERIAL PRIMARY KEY,
   spending_id BIGINT NOT NULL,
   amount FLOAT8 NOT NULL,

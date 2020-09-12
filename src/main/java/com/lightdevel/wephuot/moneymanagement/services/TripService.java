@@ -14,7 +14,7 @@ public interface TripService {
 
     Set<TripOut> getAllTripsOfUser(String userId);
 
-    TripOut getDetail(String tripId);
+    TripOut getDetail(String tripId, String userId);
 
-    String validateTrip(String tripId);
+    String validateTrip(String tripId, String userId);
 }

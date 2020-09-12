@@ -1,6 +1,7 @@
 package com.lightdevel.wephuot.moneymanagement.services;
 
 import com.lightdevel.wephuot.moneymanagement.exceptions.BusinessException;
+import com.lightdevel.wephuot.moneymanagement.exceptions.UserNotInTripException;
 import com.lightdevel.wephuot.moneymanagement.models.entities.Participant;
 import com.lightdevel.wephuot.moneymanagement.models.entities.Trip;
 import com.lightdevel.wephuot.moneymanagement.models.entities.User;
@@ -13,6 +14,8 @@ import com.lightdevel.wephuot.moneymanagement.repositories.UserRepository;
 import com.lightdevel.wephuot.moneymanagement.utils.FileUtil;
 import com.lightdevel.wephuot.moneymanagement.utils.Util;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +26,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class TripServiceImpl implements TripService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TripServiceImpl.class);
 
     private ParticipantRepository participantRepository;
     private TripRepository tripRepository;
@@ -119,12 +123,13 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public TripOut getDetail(String tripId) {
+    public TripOut getDetail(String tripId, String userId) {
+        if(this.participantRepository.findByUserUserIdAndTripTripId(userId, tripId) == null) {
+            LOGGER.error("User = {} not in trip = {}", userId, tripId);
+            throw new UserNotInTripException(tripId, userId);
+        }
         TripOut.TripOutBuilder tripOutBuilder = TripOut.builder();
         List<Participant> participants = this.participantRepository.findAllByTripTripId(tripId);
-        if(participants == null || participants.size() == 0) {
-            return tripOutBuilder.build();
-        }
         Trip trip = participants.get(0).getTrip();
         return tripOutBuilder
                 .tripId(trip.getTripId())
@@ -142,7 +147,11 @@ public class TripServiceImpl implements TripService {
 
     @Override
     @Transactional
-    public String validateTrip(String tripId) {
+    public String validateTrip(String tripId, String userId) {
+        if(this.participantRepository.findByUserUserIdAndTripTripId(userId, tripId) == null) {
+            LOGGER.error("Trip = {} do not exist or user = {} not in trip", tripId, userId);
+            throw new UserNotInTripException(tripId, userId);
+        }
         Optional<Trip> optionalTrip = this.tripRepository.findById(tripId);
         if(optionalTrip.isPresent()) {
             Trip trip = optionalTrip.get();

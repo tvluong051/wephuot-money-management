@@ -10,7 +10,7 @@ public interface SpendingService {
 
     void deleteSpending(Long spendingId);
 
-    SpendingOut saveSpending(String tripId, SpendingIn spendingIn);
+    SpendingOut addSpending(String tripId, SpendingIn spendingIn);
 
     SpendingOut updateSpending(Long spendingId, SpendingIn spendingIn);
 }
