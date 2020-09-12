@@ -5,8 +5,7 @@ import com.lightdevel.wephuot.moneymanagement.models.out.SpendingOut;
 import com.lightdevel.wephuot.moneymanagement.services.SpendingService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +13,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Api("Manipulation spendings")
 @RestController
 @RequestMapping("/api/v1/spendings")
 public class SpendingController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SpendingController.class);
 
     private SpendingService spendingService;
 
@@ -31,7 +30,7 @@ public class SpendingController {
     @ApiOperation("Get all spendings of trip using trip id")
     @GetMapping
     public List<SpendingOut> getAllSpendingsOfTrip(@RequestParam("tripId") String tripId) {
-        LOGGER.info("GET - Get all spendings of trip = {}", tripId);
+        log.info("GET - Get all spendings of trip = {}", tripId);
         return this.spendingService.getAllSpendingsOfTrip(tripId);
     }
 
@@ -40,8 +39,8 @@ public class SpendingController {
     @PostMapping("/spending")
     public SpendingOut createSpending(@RequestParam("tripId") String tripId,
                                       @RequestBody SpendingIn spendingIn) {
-        LOGGER.info("POST - Create new spending = {} for trip id = {}", spendingIn, tripId);
-        return this.spendingService.saveSpending(tripId, spendingIn);
+        log.info("POST - Create new spending = {} for trip id = {}", spendingIn, tripId);
+        return this.spendingService.addSpending(tripId, spendingIn);
     }
 
 
@@ -50,7 +49,7 @@ public class SpendingController {
     @PutMapping("/spending/{spendingId}")
     public SpendingOut updateSpending(@PathVariable("spendingId") Long spendingId,
                                       @RequestBody SpendingIn spendingIn) {
-        LOGGER.info("PUT - Update spending id = {}", spendingId);
+        log.info("PUT - Update spending id = {}", spendingId);
         return this.spendingService.updateSpending(spendingId, spendingIn);
     }
 
@@ -58,7 +57,7 @@ public class SpendingController {
     @ApiOperation("Delete spending")
     @DeleteMapping("/spending/{spendingId}")
     public ResponseEntity<Void> deleteSpending(@PathVariable("spendingId") Long spendingId) {
-        LOGGER.info("DELETE - delete spending id = {}", spendingId);
+        log.info("DELETE - delete spending id = {}", spendingId);
         this.spendingService.deleteSpending(spendingId);
         return ResponseEntity.ok().build();
     }
