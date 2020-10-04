@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Objects;
@@ -30,13 +29,14 @@ public class SecurityConfig  extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 			.httpBasic().disable()
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+			.csrf().disable()
+			.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 			.and()
 				.authorizeRequests()
 				.antMatchers("/swagger-ui.html").permitAll()
 				.antMatchers("/api/**").authenticated()
 			.and()
-				.addFilterAt(new IdentityFilter(restTemplate, identityServerUrl), UsernamePasswordAuthenticationFilter.class)
+				.addFilter(new IdentityFilter(authenticationManager(), restTemplate, identityServerUrl))
 		;
 	}
 }

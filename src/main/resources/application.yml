@@ -27,7 +27,7 @@ logging:
   file:
     name: ${LOG_PATH}/money_management.log
   level:
-    root: WARN
+    root: ${LOG_LEVEL}
     org:
       springframework:
         web: INFO
@@ -42,5 +42,5 @@ server:
     key-alias: ${KEY_ALIAS}
 
 ssl:
-  trust-store: ${CERTIFICATE_FOLDER}/${KEYSTORE_FILE}
+  trust-store: file://${CERTIFICATE_FOLDER}/${KEYSTORE_FILE}
   trust-store-password: ${KEYSTORE_PASSWORD}

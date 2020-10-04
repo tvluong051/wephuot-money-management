@@ -1,5 +1,6 @@
 package com.lightdevel.wephuot.moneymanagement.controllers;
 
+import com.lightdevel.wephuot.moneymanagement.exceptions.BusinessException;
 import com.lightdevel.wephuot.moneymanagement.models.entities.User;
 import com.lightdevel.wephuot.moneymanagement.models.in.TripIn;
 import com.lightdevel.wephuot.moneymanagement.models.out.TripOut;
@@ -9,9 +10,9 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Objects;
@@ -33,16 +34,21 @@ public class TripController {
     /* Get informations about trip */
     @ApiOperation("Get all trip of user")
     @GetMapping
-    public Set<TripOut> getAllUserTrips(HttpServletRequest request) {
-        String userId = (String) request.getAttribute("userId");
+    public Set<TripOut> getAllUserTrips(@RequestParam("userId") String userId) {
+        String contextUserId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (contextUserId == null
+                || !Objects.equals(contextUserId, userId)
+        ) {
+            throw new BusinessException("Cannot retrieve trips of someone else");
+        }
         log.info("GET - Get all trips of user = {}", userId);
         return this.tripService.getAllTripsOfUser(userId);
     }
 
     @ApiOperation("Get trip details")
     @GetMapping(value = "/trip/{tripId}")
-    public TripOut getTripDetail(@PathVariable("tripId") String tripId, HttpServletRequest request) {
-        String userId = (String) request.getAttribute("userId");
+    public TripOut getTripDetail(@PathVariable("tripId") String tripId) {
+        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         log.info("GET - Get detail of trip with id = {} from user = {}", tripId, userId);
         return this.tripService.getDetail(tripId, userId);
     }
@@ -68,8 +74,8 @@ public class TripController {
     /* Validate or delete trip */
     @ApiOperation("Validate PENDING trip")
     @PutMapping(value = "/trip/{tripId}")
-    public ResponseEntity<String> validateTrip(@PathVariable("tripId") String tripId, HttpServletRequest request) {
-        String userId = (String) request.getAttribute("userId");
+    public ResponseEntity<String> validateTrip(@PathVariable("tripId") String tripId) {
+        String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         log.info("PUT - Validate trip with id = {} from user = {}", tripId, userId);
         String resultId = this.tripService.validateTrip(tripId, userId);
         if( resultId == null) {

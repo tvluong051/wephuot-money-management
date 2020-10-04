@@ -5,13 +5,13 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.*;
 
 @Slf4j
-public class IdentityFilter extends OncePerRequestFilter {
+public class IdentityFilter extends BasicAuthenticationFilter {
 	private static final String AUTHORIZATION_HEADER = "Authorization";
 	private static final String BEARER_PREFIX = "Bearer ";
 
@@ -31,14 +31,15 @@ public class IdentityFilter extends OncePerRequestFilter {
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	private static class Identity {
 		private String userId;
-		private long expireTs;
+		private long expiresTokenTs;
 	}
 
 	private RestTemplate restTemplate;
 
 	private String identityServerUrl;
 
-	public IdentityFilter(RestTemplate restTemplate, String identityServerUrl) {
+	public IdentityFilter(AuthenticationManager authManager, RestTemplate restTemplate, String identityServerUrl) {
+		super(authManager);
 		this.restTemplate = Objects.requireNonNull(restTemplate);
 		this.identityServerUrl = Objects.requireNonNull(identityServerUrl);
 	}
@@ -61,6 +62,7 @@ public class IdentityFilter extends OncePerRequestFilter {
 	private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
 		long now = DateTime.now().getMillis();
 		String authorizationHeader = request.getHeader(AUTHORIZATION_HEADER);
+		log.debug("Token found: {}", authorizationHeader);
 		if (authorizationHeader == null) {
 			return null;
 		}
@@ -72,10 +74,12 @@ public class IdentityFilter extends OncePerRequestFilter {
 			identity = identities.get(token);
 		}
 		if (identity != null) {
-			if (identity.getExpireTs() < now) {
+			log.debug("now = {} and expireTs = {}", now, identity.getExpiresTokenTs());
+			if (identity.getExpiresTokenTs() < now) {
 				return  null;
 			}
-			return new UsernamePasswordAuthenticationToken(identity.getUserId(), null, new ArrayList<>());
+			log.debug("User {} found in cache for token", identity.getUserId());
+			return new UsernamePasswordAuthenticationToken(identity.getUserId(), null, Arrays.asList(new SimpleGrantedAuthority("ROLE_USER")));
 		}
 
 		identity = validateToken(token);
@@ -83,7 +87,8 @@ public class IdentityFilter extends OncePerRequestFilter {
 			return null;
 		}
 		identities.put(token, identity);
-		return new UsernamePasswordAuthenticationToken(identity.getUserId(), null, new ArrayList<>());
+		log.debug("User {} for token", identity.getUserId());
+		return new UsernamePasswordAuthenticationToken(identity.getUserId(), null, Arrays.asList(new SimpleGrantedAuthority("ROLE_USER")));
 	}
 
 	private Identity validateToken(String token) {

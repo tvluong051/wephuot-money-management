@@ -37,7 +37,7 @@ public class ServiceConfig {
 					new HttpComponentsClientHttpRequestFactory(httpClient);
 			return new RestTemplate(factory);
 		} catch (Exception exception) {
-			log.error("Could not load certificate");
+			log.error("Could not load certificate", exception);
 		}
 		return new RestTemplate();
 	}
